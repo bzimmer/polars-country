@@ -1,0 +1,26 @@
+[build-system]
+requires = ["maturin>=1.0,<2"]
+build-backend = "maturin"
+
+[project]
+name = "polars-country"
+version = "0.1.0"
+description = "Fast offline country-code lookup for Polars"
+requires-python = ">=3.14"
+dependencies = [
+    "polars>=1.0",
+]
+
+[tool.maturin]
+features = ["pyo3/extension-module"]
+python-source = "python"
+module-name = "polars_country._geo_country"
+
+[dependency-groups]
+dev = [
+    "maturin>=1.0,<2",
+    "pytest>=8",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]

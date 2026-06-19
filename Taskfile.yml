@@ -1,0 +1,46 @@
+version: "3"
+
+vars:
+  VENV_PYTHON: "{{.TASKFILE_DIR}}/.venv/bin/python"
+
+tasks:
+  default:
+    cmds:
+      - task -l --sort alphanumeric
+
+  clean:
+    desc: Remove build artifacts (Rust target/ and Python cache files)
+    cmds:
+      - cargo clean
+      - fd -t d -H '__pycache__|\.egg-info$|\.pytest_cache' -x rm -rf
+
+  _deps:
+    internal: true
+    sources:
+      - pyproject.toml
+      - uv.lock
+    cmds:
+      - uv sync --no-install-project
+
+  build:
+    desc: Compile the Rust extension and install it into the venv
+    deps: [_deps]
+    sources:
+      - src/**/*.rs
+      - Cargo.toml
+      - Cargo.lock
+    cmds:
+      - uv run maturin develop --release
+
+  release:
+    desc: Build a release wheel into target/wheels/
+    deps: [test]
+    cmds:
+      - uv run maturin build --release
+
+  test:
+    desc: Run Rust unit tests and Python pytest suite
+    deps: [build]
+    cmds:
+      - PYO3_PYTHON={{.VENV_PYTHON}} cargo test
+      - uv run pytest -v
