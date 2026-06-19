@@ -29,6 +29,7 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.14"
+          enable-cache: true
       - uses: PyO3/maturin-action@v1
         with:
           args: --release --out dist
@@ -82,4 +83,5 @@ jobs:
           pattern: wheels-*
           merge-multiple: true
           path: dist
-      - uses: pypa/gh-action-pypi-publish@release/v1
+      - uses: astral-sh/setup-uv@v5
+      - run: uv publish dist/*
