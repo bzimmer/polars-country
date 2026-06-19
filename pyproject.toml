@@ -20,6 +20,7 @@ module-name = "polars_country._geo_country"
 dev = [
     "maturin>=1.0,<2",
     "pytest>=8",
+    "pytest-cov>=7.1.0",
 ]
 
 [tool.pytest.ini_options]

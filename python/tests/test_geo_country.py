@@ -60,7 +60,7 @@ class TestCountryCodes:
 
 
 # ---------------------------------------------------------------------------
-# Polars expression API (country_code)
+# Polars expression API
 # ---------------------------------------------------------------------------
 
 DF = pl.DataFrame({
@@ -70,27 +70,23 @@ DF = pl.DataFrame({
 EXPECTED = ["CH", "FR", "US", "AU", None, "GB"]
 
 
-class TestPolarsExpressionAPI:
+class TestSeparateColumns:
     def test_column_names(self):
-        result = DF.with_columns(code("lat", "lng").alias("country"))
+        result = DF.with_columns(code(["lat", "lng"]).alias("country"))
         assert result["country"].to_list() == EXPECTED
 
     def test_series_inputs(self):
-        result = DF.with_columns(
-            code(DF["lat"], DF["lng"]).alias("country")
-        )
+        result = DF.with_columns(code([DF["lat"], DF["lng"]]).alias("country"))
         assert result["country"].to_list() == EXPECTED
 
     def test_expr_inputs(self):
-        result = DF.with_columns(
-            code(pl.col("lat"), pl.col("lng")).alias("country")
-        )
+        result = DF.with_columns(code([pl.col("lat"), pl.col("lng")]).alias("country"))
         assert result["country"].to_list() == EXPECTED
 
     def test_lazy_pipeline(self):
         result = (
             DF.lazy()
-            .with_columns(code("lat", "lng").alias("country"))
+            .with_columns(code(["lat", "lng"]).alias("country"))
             .filter(pl.col("country") == "CH")
             .collect()
         )
@@ -98,27 +94,23 @@ class TestPolarsExpressionAPI:
         assert result["country"][0] == "CH"
 
     def test_output_dtype_is_string(self):
-        result = DF.with_columns(code("lat", "lng").alias("country"))
+        result = DF.with_columns(code(["lat", "lng"]).alias("country"))
         assert result["country"].dtype == pl.String
 
     def test_ocean_produces_null(self):
         ocean = pl.DataFrame({"lat": [0.0], "lng": [0.0]})
-        result = ocean.with_columns(code("lat", "lng").alias("country"))
+        result = ocean.with_columns(code(["lat", "lng"]).alias("country"))
         assert result["country"][0] is None
-
-    def test_invalid_input_type_raises(self):
-        with pytest.raises(TypeError):
-            code(42, "lng")  # type: ignore[arg-type]
 
     def test_null_inputs_propagate_as_null(self):
         df = pl.DataFrame({"lat": [47.37, None], "lng": [8.54, None]})
-        result = df.with_columns(code("lat", "lng").alias("country"))
+        result = df.with_columns(code(["lat", "lng"]).alias("country"))
         assert result["country"][0] == "CH"
         assert result["country"][1] is None
 
     def test_nan_inputs_produce_null(self):
         df = pl.DataFrame({"lat": [47.37, math.nan], "lng": [8.54, math.nan]})
-        result = df.with_columns(code("lat", "lng").alias("country"))
+        result = df.with_columns(code(["lat", "lng"]).alias("country"))
         assert result["country"][0] == "CH"
         assert result["country"][1] is None
 
@@ -127,8 +119,12 @@ class TestPolarsExpressionAPI:
             "lat": pl.Series([47.37], dtype=pl.Float32),
             "lng": pl.Series([8.54], dtype=pl.Float32),
         })
-        result = df.with_columns(code("lat", "lng").alias("country"))
+        result = df.with_columns(code(["lat", "lng"]).alias("country"))
         assert result["country"][0] == "CH"
+
+    def test_wrong_length_raises(self):
+        with pytest.raises(ValueError, match="exactly 2"):
+            code(["lat", "lng", "extra"])
 
 
 class TestListColumn:
@@ -164,3 +160,7 @@ class TestListColumn:
         result = df.with_columns(code("latlng").alias("country"))
         assert result["country"][0] == "CH"
         assert result["country"][1] is None
+
+    def test_invalid_type_raises(self):
+        with pytest.raises(TypeError):
+            code(42)  # type: ignore[arg-type]

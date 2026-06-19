@@ -32,6 +32,12 @@ tasks:
     cmds:
       - uv run maturin develop --release
 
+  install:
+    desc: Build a release wheel and install it into the current venv
+    deps: [release]
+    cmds:
+      - uv pip install target/wheels/polars_country-*.whl --force-reinstall
+
   release:
     desc: Build a release wheel into target/wheels/
     deps: [test]

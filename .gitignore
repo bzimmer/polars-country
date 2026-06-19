@@ -11,6 +11,7 @@ dist/
 *.egg-info/
 .venv/
 .pytest_cache/
+.coverage
 
 # maturin
 /target/
