@@ -84,4 +84,6 @@ jobs:
           merge-multiple: true
           path: dist
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          enable-cache: false
       - run: uv publish dist/*

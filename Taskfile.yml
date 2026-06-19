@@ -61,6 +61,7 @@ tasks:
       - git add pyproject.toml Cargo.toml uv.lock
       - git diff --cached --quiet || git commit -m "release v{{.VERSION}}"
       - git tag v{{.VERSION}}
+      - git push origin v{{.VERSION}}
 
   test:
     desc: Run Rust unit tests and Python pytest suite
