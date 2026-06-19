@@ -59,7 +59,7 @@ tasks:
       - uv version {{.VERSION}}
       - sed -i '' 's/^version = "[^"]*"/version = "{{.VERSION}}"/' Cargo.toml
       - git add pyproject.toml Cargo.toml uv.lock
-      - git commit -m "release v{{.VERSION}}"
+      - git diff --cached --quiet || git commit -m "release v{{.VERSION}}"
       - git tag v{{.VERSION}}
 
   test:

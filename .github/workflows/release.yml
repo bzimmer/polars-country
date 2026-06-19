@@ -11,7 +11,7 @@ jobs:
     name: Source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: PyO3/maturin-action@v1
         with:
           command: sdist
@@ -25,11 +25,10 @@ jobs:
     name: macOS (Apple Silicon)
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
         with:
           python-version: "3.14"
-          enable-cache: true
       - uses: PyO3/maturin-action@v1
         with:
           args: --release --out dist
@@ -42,7 +41,7 @@ jobs:
     name: Linux (x86_64)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: PyO3/maturin-action@v1
         with:
           target: x86_64
@@ -57,7 +56,7 @@ jobs:
     name: Linux (aarch64)
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: PyO3/maturin-action@v1
         with:
           target: aarch64
@@ -78,10 +77,10 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: wheels-*
           merge-multiple: true
           path: dist
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
       - run: uv publish dist/*
