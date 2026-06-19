@@ -18,7 +18,7 @@ polars-country/
 └── python/
     └── polars_country/
         ├── __init__.py                 # Polars expression helper
-        └── _geo_country.pyi            # Type stubs for the native extension
+        └── _polars_country.pyi         # Type stubs for the native extension
 ```
 
 ## Development
@@ -36,7 +36,7 @@ task clean    # cargo clean + remove Python cache dirs
 ### Low-level (native extension directly)
 
 ```python
-from polars_country import _geo_country as gc
+from polars_country import _polars_country as gc
 
 # Single point
 gc.country_code(47.37, 8.54)          # "CH"

@@ -10,6 +10,9 @@ tasks:
 
   clean:
     desc: Remove build artifacts (Rust target/ and Python cache files)
+    preconditions:
+      - sh: command -v fd
+        msg: "'fd' is required (https://github.com/sharkdp/fd)."
     cmds:
       - cargo clean
       - fd -t d -H '__pycache__|\.egg-info$|\.pytest_cache' -x rm -rf
@@ -25,18 +28,15 @@ tasks:
   build:
     desc: Compile the Rust extension and install it into the venv
     deps: [_deps]
-    sources:
-      - src/**/*.rs
-      - Cargo.toml
-      - Cargo.lock
     cmds:
-      - uv run maturin develop --release
+      - uv run --no-sync maturin develop
 
   fmt:
     desc: Format Python (ruff) and Rust (cargo fmt) source
+    deps: [_deps]
     cmds:
-      - uv run ruff format .
-      - uv run ruff check --select I --fix .
+      - uv run --no-sync ruff format .
+      - uv run --no-sync ruff check --select I --fix .
       - cargo fmt
 
   install:
@@ -49,7 +49,7 @@ tasks:
     desc: Build a release wheel into target/wheels/
     deps: [test]
     cmds:
-      - uv run maturin build --release
+      - uv run --no-sync maturin build --release
 
   tag:
     desc: Bump version, commit, and create a git tag (e.g. task tag VERSION=0.2.0)
@@ -58,7 +58,8 @@ tasks:
     cmds:
       - uv version {{.VERSION}}
       - sed -i '' 's/^version = "[^"]*"/version = "{{.VERSION}}"/' Cargo.toml
-      - git add pyproject.toml Cargo.toml uv.lock
+      - cargo update --package polars_country
+      - git add pyproject.toml Cargo.toml Cargo.lock uv.lock
       - git diff --cached --quiet || git commit -m "release v{{.VERSION}}"
       - git tag v{{.VERSION}}
       - git push origin v{{.VERSION}}
@@ -68,4 +69,4 @@ tasks:
     deps: [build]
     cmds:
       - PYO3_PYTHON={{.VENV_PYTHON}} cargo test
-      - uv run pytest -v
+      - uv run --no-sync pytest -v --cov=polars_country --cov-report=term-missing

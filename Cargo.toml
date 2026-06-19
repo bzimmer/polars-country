@@ -1,10 +1,10 @@
 [package]
-name = "geo_country"
+name = "polars_country"
 version = "0.2.0"
-edition = "2021"
+edition = "2024"
 
 [lib]
-name = "geo_country"
+name = "polars_country"
 crate-type = ["cdylib"]
 
 [dependencies]
@@ -14,5 +14,6 @@ polars-core = { version = "0.54", default-features = false }
 country-boundaries = "1.2"
 
 [profile.release]
-opt-level = 3
-strip = "symbols"
+lto           = "thin"
+codegen-units = 1
+strip         = "symbols"
