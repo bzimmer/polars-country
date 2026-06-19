@@ -1,15 +1,14 @@
 import math
 
-import pytest
 import polars as pl
+import pytest
 
-from polars_country import _geo_country as gc
-from polars_country import code
-
+from polars_country import code, _polars_country as gc
 
 # ---------------------------------------------------------------------------
 # Native extension (_geo_country)
 # ---------------------------------------------------------------------------
+
 
 class TestCountryCode:
     def test_zurich(self):
@@ -63,10 +62,12 @@ class TestCountryCodes:
 # Polars expression API
 # ---------------------------------------------------------------------------
 
-DF = pl.DataFrame({
-    "lat": [47.37,  48.85,  33.0,   -33.87,  0.0,   51.50],
-    "lng": [ 8.54,   2.35, -97.0,  151.21,   0.0,  -0.12],
-})
+DF = pl.DataFrame(
+    {
+        "lat": [47.37, 48.85, 33.0, -33.87, 0.0, 51.50],
+        "lng": [8.54, 2.35, -97.0, 151.21, 0.0, -0.12],
+    }
+)
 EXPECTED = ["CH", "FR", "US", "AU", None, "GB"]
 
 
@@ -115,10 +116,12 @@ class TestSeparateColumns:
         assert result["country"][1] is None
 
     def test_float32_columns(self):
-        df = pl.DataFrame({
-            "lat": pl.Series([47.37], dtype=pl.Float32),
-            "lng": pl.Series([8.54], dtype=pl.Float32),
-        })
+        df = pl.DataFrame(
+            {
+                "lat": pl.Series([47.37], dtype=pl.Float32),
+                "lng": pl.Series([8.54], dtype=pl.Float32),
+            }
+        )
         result = df.with_columns(code(["lat", "lng"]).alias("country"))
         assert result["country"][0] == "CH"
 
@@ -160,6 +163,13 @@ class TestListColumn:
         result = df.with_columns(code("latlng").alias("country"))
         assert result["country"][0] == "CH"
         assert result["country"][1] is None
+
+    def test_short_lists_produce_null(self):
+        df = pl.DataFrame({"latlng": [[47.37, 8.54], [], [47.37]]})
+        result = df.with_columns(code("latlng").alias("country"))
+        assert result["country"][0] == "CH"
+        assert result["country"][1] is None  # empty list
+        assert result["country"][2] is None  # single element
 
     def test_invalid_type_raises(self):
         with pytest.raises(TypeError):

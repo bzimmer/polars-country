@@ -32,6 +32,13 @@ tasks:
     cmds:
       - uv run maturin develop --release
 
+  fmt:
+    desc: Format Python (ruff) and Rust (cargo fmt) source
+    cmds:
+      - uv run ruff format .
+      - uv run ruff check --select I --fix .
+      - cargo fmt
+
   install:
     desc: Build a release wheel and install it into the current venv
     deps: [release]
@@ -43,6 +50,17 @@ tasks:
     deps: [test]
     cmds:
       - uv run maturin build --release
+
+  tag:
+    desc: Bump version, commit, and create a git tag (e.g. task tag VERSION=0.2.0)
+    requires:
+      vars: [VERSION]
+    cmds:
+      - uv version {{.VERSION}}
+      - sed -i '' 's/^version = "[^"]*"/version = "{{.VERSION}}"/' Cargo.toml
+      - git add pyproject.toml Cargo.toml uv.lock
+      - git commit -m "release v{{.VERSION}}"
+      - git tag v{{.VERSION}}
 
   test:
     desc: Run Rust unit tests and Python pytest suite

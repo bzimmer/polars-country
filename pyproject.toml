@@ -14,14 +14,70 @@ dependencies = [
 [tool.maturin]
 features = ["pyo3/extension-module"]
 python-source = "python"
-module-name = "polars_country._geo_country"
+module-name = "polars_country._polars_country"
 
 [dependency-groups]
 dev = [
     "maturin>=1.0,<2",
     "pytest>=8",
     "pytest-cov>=7.1.0",
+    "ruff>=0.15.13",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["python/tests"]
+
+[tool.ruff]
+
+[tool.ruff.format]
+indent-style = "space"
+line-ending  = "auto"
+quote-style  = "double"
+
+[tool.ruff.lint]
+extend-ignore = [
+  'ANN002', # missing type annotation for *args
+  'ANN003', # missing type annotation for **kwargs
+  'E501',   # line too long
+  'I',      # isort
+  'S602',   # subprocess shell=True
+  'S603',   # no untrusted subprocess input
+  'S607',   # starting a process with a partial executable path
+  'TC002',  # type-checking block ignores (third-party imports)
+  'TC003',  # type-checking block ignores (standard library imports)
+  'TRY003', # long messages outside the exception class
+]
+extend-select = [
+  'ANN',  # annotations
+  'B',    # flake8-bugbear
+  'C4',   # flake8-comprehensions
+  'C90',  # mccabe
+  'DTZ',  # flake8-datetimez
+  'E',    # pycodestyle
+  'F',    # Pyflakes
+  'FLY',  # flynt
+  'FURB', # Refurb
+  'N',    # pep8-naming
+  'Q',    # flake8-quotes
+  'RUF',  # ruff
+  'S',    # flake8-bandit
+  'SIM',  # flake8-simplify
+  'TC',   # flake8-type-checking
+  'TRY',  # tryceratops
+  'UP',   # pyupgrade
+  'W',    # pycodestyle
+  'YTT',  # flake8-2020
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"**/tests/**/test_*.py" = [
+  "S101", # asserts allowed in tests
+]
+
+[tool.ruff.lint.isort]
+combine-as-imports   = true
+from-first           = false
+known-first-party    = ["polars_country"]
+known-third-party    = ["polars"]
+length-sort          = true
+length-sort-straight = true

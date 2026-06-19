@@ -16,10 +16,7 @@ and exposes a single ``code`` expression that plugs into any Polars query.
     df.with_columns(pc.code(["lat", "lng"]).alias("country"))
 """
 
-from __future__ import annotations
-
 from pathlib import Path
-from typing import Sequence
 
 import polars as pl
 from polars.plugins import register_plugin_function
@@ -29,7 +26,7 @@ _LIB = Path(__file__).parent
 IntoExpr = str | pl.Expr | pl.Series
 
 
-def code(coords: IntoExpr | Sequence[IntoExpr]) -> pl.Expr:
+def code(coords: IntoExpr | list[IntoExpr]) -> pl.Expr:
     """Return a Polars expression resolving to the ISO 3166-1 alpha-2 country code.
 
     Accepts either a single list/array column containing ``[lat, lng]`` per row,
@@ -86,15 +83,17 @@ def code(coords: IntoExpr | Sequence[IntoExpr]) -> pl.Expr:
     │ 48.85 ┆ 2.35 ┆ FR      │
     └───────┴──────┴─────────┘
     """
-    if isinstance(coords, (list, tuple)):
+    if isinstance(coords, list):
         if len(coords) != 2:
-            raise ValueError(f"coords sequence must have exactly 2 elements, got {len(coords)}")
+            raise ValueError(
+                f"coords sequence must have exactly 2 elements, got {len(coords)}"
+            )
         lat_expr = _to_expr(coords[0])
         lng_expr = _to_expr(coords[1])
     else:
         latlng = _to_expr(coords)
-        lat_expr = latlng.list.get(0)
-        lng_expr = latlng.list.get(1)
+        lat_expr = latlng.list.get(0, null_on_oob=True)
+        lng_expr = latlng.list.get(1, null_on_oob=True)
 
     return register_plugin_function(
         plugin_path=_LIB,

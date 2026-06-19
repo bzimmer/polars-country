@@ -1,7 +1,7 @@
 use country_boundaries::{CountryBoundaries, LatLon, BOUNDARIES_ODBL_360X180};
 use polars_core::prelude::*;
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
 use pyo3_polars::derive::polars_expr;
 use std::sync::OnceLock;
 
@@ -16,8 +16,7 @@ fn boundaries() -> &'static CountryBoundaries {
 
 // Pure Rust core — testable without a Python interpreter.
 fn lookup(lat: f64, lng: f64) -> Result<Option<String>, String> {
-    let ll = LatLon::new(lat, lng)
-        .map_err(|e| format!("invalid lat/lon ({lat},{lng}): {e}"))?;
+    let ll = LatLon::new(lat, lng).map_err(|e| format!("invalid lat/lon ({lat},{lng}): {e}"))?;
     let code = boundaries()
         .ids(ll)
         .into_iter()
@@ -63,7 +62,9 @@ fn country_code(lat: f64, lng: f64) -> PyResult<Option<String>> {
 #[pyfunction]
 fn country_codes(lats: Vec<f64>, lngs: Vec<f64>) -> PyResult<Vec<Option<String>>> {
     if lats.len() != lngs.len() {
-        return Err(PyValueError::new_err("lats and lngs must have the same length"));
+        return Err(PyValueError::new_err(
+            "lats and lngs must have the same length",
+        ));
     }
     lats.iter()
         .zip(lngs.iter())
@@ -72,7 +73,7 @@ fn country_codes(lats: Vec<f64>, lngs: Vec<f64>) -> PyResult<Vec<Option<String>>
 }
 
 #[pymodule]
-fn _geo_country(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _polars_country(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(country_code, m)?)?;
     m.add_function(wrap_pyfunction!(country_codes, m)?)?;
     Ok(())
@@ -84,13 +85,13 @@ mod tests {
 
     #[test]
     fn known_cities() {
-        assert_eq!(lookup(47.37,   8.54).unwrap(), Some("CH".into())); // Zurich
-        assert_eq!(lookup(48.85,   2.35).unwrap(), Some("FR".into())); // Paris
-        assert_eq!(lookup(33.0,  -97.0 ).unwrap(), Some("US".into())); // Texas
+        assert_eq!(lookup(47.37, 8.54).unwrap(), Some("CH".into())); // Zurich
+        assert_eq!(lookup(48.85, 2.35).unwrap(), Some("FR".into())); // Paris
+        assert_eq!(lookup(33.0, -97.0).unwrap(), Some("US".into())); // Texas
         assert_eq!(lookup(-33.87, 151.21).unwrap(), Some("AU".into())); // Sydney
-        assert_eq!(lookup(51.50,  -0.12).unwrap(), Some("GB".into())); // London
+        assert_eq!(lookup(51.50, -0.12).unwrap(), Some("GB".into())); // London
         assert_eq!(lookup(35.68, 139.69).unwrap(), Some("JP".into())); // Tokyo
-        assert_eq!(lookup(55.75,  37.62).unwrap(), Some("RU".into())); // Moscow
+        assert_eq!(lookup(55.75, 37.62).unwrap(), Some("RU".into())); // Moscow
     }
 
     #[test]
