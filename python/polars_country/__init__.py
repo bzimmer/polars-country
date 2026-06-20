@@ -16,8 +16,8 @@ and exposes a single ``code`` expression that plugs into any Polars query.
     df.with_columns(pc.code(["lat", "lng"]).alias("country"))
 """
 
-from pathlib import Path
 from typing import assert_never
+from pathlib import Path
 
 import polars as pl
 from polars.plugins import register_plugin_function

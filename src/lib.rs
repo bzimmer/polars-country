@@ -1,4 +1,4 @@
-use country_boundaries::{CountryBoundaries, LatLon, BOUNDARIES_ODBL_360X180};
+use country_boundaries::{BOUNDARIES_ODBL_360X180, CountryBoundaries, LatLon};
 use polars_core::prelude::*;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

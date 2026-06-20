@@ -199,7 +199,11 @@ class TestListColumn:
 
     def test_array_column(self) -> None:
         df = pl.DataFrame(
-            {"latlng": pl.Series([[47.37, 8.54], [48.85, 2.35]]).cast(pl.Array(pl.Float64, 2))}
+            {
+                "latlng": pl.Series([[47.37, 8.54], [48.85, 2.35]]).cast(
+                    pl.Array(pl.Float64, 2)
+                )
+            }
         )
         result = df.with_columns(code("latlng").alias("country"))
         assert result["country"].to_list() == ["CH", "FR"]
