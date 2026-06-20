@@ -24,8 +24,9 @@ polars-country/
 ## Development
 
 ```bash
-task build    # install Python deps + compile Rust extension (incremental)
-task test     # cargo test + pytest
+task build    # install Python deps + compile Rust extension
+task fmt      # ruff format/isort + cargo fmt
+task test     # cargo test + pytest (with coverage)
 task release  # run tests, then build a wheel into target/wheels/
 task install  # release, then install the wheel into the current venv
 task clean    # cargo clean + remove Python cache dirs
@@ -36,14 +37,14 @@ task clean    # cargo clean + remove Python cache dirs
 ### Low-level (native extension directly)
 
 ```python
-from polars_country import _polars_country as gc
+from polars_country import _polars_country as pc
 
 # Single point
-gc.country_code(47.37, 8.54)          # "CH"
-gc.country_code(0.0, 0.0)             # None  (open ocean)
+pc.country_code(47.37, 8.54)          # "CH"
+pc.country_code(0.0, 0.0)             # None  (open ocean)
 
 # Vectorised — accepts plain Python lists
-codes = gc.country_codes(
+codes = pc.country_codes(
     [47.37, 48.85, 33.0],
     [ 8.54,  2.35, -97.0],
 )  # ["CH", "FR", "US"]
