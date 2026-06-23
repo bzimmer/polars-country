@@ -57,8 +57,7 @@ tasks:
       vars: [VERSION]
     cmds:
       - uv version {{.VERSION}}
-      - sed -i '' 's/^version = "[^"]*"/version = "{{.VERSION}}"/' Cargo.toml
-      - cargo update --package polars_country
+      - cargo set-version {{.VERSION}}
       - git add pyproject.toml Cargo.toml Cargo.lock uv.lock
       - git diff --cached --quiet || git commit -m "release v{{.VERSION}}"
       - git tag v{{.VERSION}}
