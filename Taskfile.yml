@@ -56,7 +56,7 @@ tasks:
     requires:
       vars: [VERSION]
     cmds:
-      - uv version {{.VERSION}}
+      - uv version {{.VERSION}} --no-sync
       - cargo set-version {{.VERSION}}
       - git add pyproject.toml Cargo.toml Cargo.lock uv.lock
       - git diff --cached --quiet || git commit -m "release v{{.VERSION}}"
