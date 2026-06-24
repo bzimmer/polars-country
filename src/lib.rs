@@ -1,8 +1,8 @@
 use country_boundaries::{BOUNDARIES_ODBL_360X180, CountryBoundaries, LatLon};
 use polars_core::prelude::*;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3_polars::derive::polars_expr;
+use rayon::prelude::*;
 use std::sync::OnceLock;
 
 static BOUNDARIES: OnceLock<CountryBoundaries> = OnceLock::new();
@@ -37,54 +37,32 @@ fn polars_country_code(inputs: &[Series]) -> PolarsResult<Series> {
     let lat = lat_s.f64()?;
     let lng_s = inputs[1].cast(&DataType::Float64)?;
     let lng = lng_s.f64()?;
-    let out: StringChunked = lat
-        .iter()
-        .zip(lng.iter())
-        .map(|(lat, lng)| -> PolarsResult<Option<&'static str>> {
-            match (lat, lng) {
-                (Some(lat), Some(lng)) if lat.is_finite() && lng.is_finite() => {
-                    lookup(lat, lng).map_err(|e| polars_err!(InvalidOperation: "{e}"))
+    let len = lat.len();
+
+    // Process rows in parallel; the geospatial lookup is CPU-bound and
+    // country_boundaries is stateless after initialisation.
+    let values: PolarsResult<Vec<Option<&'static str>>> = (0..len)
+        .into_par_iter()
+        .map(|i| -> PolarsResult<Option<&'static str>> {
+            match (lat.get(i), lng.get(i)) {
+                (Some(la), Some(lo)) if la.is_finite() && lo.is_finite() => {
+                    lookup(la, lo).map_err(|e| polars_err!(InvalidOperation: "{e}"))
                 }
                 _ => Ok(None),
             }
         })
-        .collect::<PolarsResult<StringChunked>>()?;
-    Ok(out.into_series())
-}
+        .collect();
 
-/// Low-level single-point lookup exposed to Python directly.
-/// Raises ValueError for out-of-range coordinates.
-#[pyfunction]
-fn country_code(lat: f64, lng: f64) -> PyResult<Option<String>> {
-    lookup(lat, lng)
-        .map(|opt| opt.map(str::to_owned))
-        .map_err(PyValueError::new_err)
-}
-
-/// Low-level vectorised lookup exposed to Python directly.
-/// Accepts two equal-length lists of floats; raises ValueError on length mismatch
-/// or out-of-range coordinates.
-#[pyfunction]
-fn country_codes(lats: Vec<f64>, lngs: Vec<f64>) -> PyResult<Vec<Option<String>>> {
-    if lats.len() != lngs.len() {
-        return Err(PyValueError::new_err(
-            "lats and lngs must have the same length",
-        ));
+    // Pre-allocate the output buffer with the known row count.
+    let mut builder = StringChunkedBuilder::new("country".into(), len);
+    for v in values? {
+        builder.append_option(v);
     }
-    lats.into_iter()
-        .zip(lngs)
-        .map(|(lat, lng)| {
-            lookup(lat, lng)
-                .map(|opt| opt.map(str::to_owned))
-                .map_err(PyValueError::new_err)
-        })
-        .collect()
+    Ok(builder.finish().into_series())
 }
 
 #[pymodule]
-fn _polars_country(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(country_code, m)?)?;
-    m.add_function(wrap_pyfunction!(country_codes, m)?)?;
+fn _polars_country(_m: &Bound<'_, PyModule>) -> PyResult<()> {
     Ok(())
 }
 

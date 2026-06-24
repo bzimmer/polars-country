@@ -17,8 +17,7 @@ polars-country/
 │   └── lib.rs                          # Rust/PyO3 extension
 └── python/
     └── polars_country/
-        ├── __init__.py                 # Polars expression helper
-        └── _polars_country.pyi         # Type stubs for the native extension
+        └── __init__.py                 # Polars expression helper
 ```
 
 ## Development
@@ -33,24 +32,6 @@ task clean    # cargo clean + remove Python cache dirs
 ```
 
 ## Usage
-
-### Low-level (native extension directly)
-
-```python
-from polars_country import _polars_country as pc
-
-# Single point
-pc.country_code(47.37, 8.54)          # "CH"
-pc.country_code(0.0, 0.0)             # None  (open ocean)
-
-# Vectorised — accepts plain Python lists
-codes = pc.country_codes(
-    [47.37, 48.85, 33.0],
-    [ 8.54,  2.35, -97.0],
-)  # ["CH", "FR", "US"]
-```
-
-### Polars expression API
 
 `pc.code` follows the same convention as `pl.concat_list` and `pl.struct`: pass a
 single expression for a combined column, or a list for separate columns.
@@ -92,7 +73,7 @@ df = pl.DataFrame({
 })
 df.with_columns(pc.code(["lat", "lng"]).alias("country"))
 
-# 4. pl.Expr or pl.Series inputs
+# 4. pl.Expr inputs
 df.with_columns(pc.code([pl.col("lat"), pl.col("lng")]).alias("country"))
 
 # 5. Works inside lazy pipelines
