@@ -1,0 +1,3 @@
+-P ubuntu-latest=ghcr.io/catthehacker/ubuntu:act-22.04
+-P ubuntu-24.04-arm=ghcr.io/catthehacker/ubuntu:act-22.04
+-P macos-14=ghcr.io/catthehacker/ubuntu:act-22.04
